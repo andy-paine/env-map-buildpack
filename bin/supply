@@ -1,0 +1,25 @@
+#!/bin/bash
+# bin/compile <build-dir> <cache-dir>
+
+set -ex
+
+APP_DIR=$1
+CACHE_DIR=$2
+DEPS_DIR=$3
+IDX=$4
+
+echo "Downloading yq"
+curl -L https://github.com/mikefarah/yq/releases/download/2.4.0/yq_linux_amd64 -o yq
+chmod +x yq
+
+CONFIG=${ENV_MAP_BP_CONFIG:-"$APP_DIR/env-map.yml"}
+echo "Creating profiled file using $CONFIG"
+mkdir -p $DEPS_DIR/$IDX/profile.d
+JSON_CONFIG="$(./yq r $CONFIG -j)"
+for var in $(echo "$JSON_CONFIG" | jq -r '.env_vars | keys[]'); do
+	selector="$(echo "$JSON_CONFIG" | jq -r ".env_vars.$var")"
+  echo "export $var=\"\$(echo \$VCAP_SERVICES | jq -r '$selector')\"" >> $DEPS_DIR/$IDX/profile.d/$IDX-mapped-env-vars.sh
+done
+
+echo "-----> Done."
+exit 0

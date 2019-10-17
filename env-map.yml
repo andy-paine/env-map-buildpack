@@ -1,0 +1,3 @@
+env_vars:
+  USERNAME: ".postgres[0].credentials.username"
+  PASSWORD: ".postgres[0].credentials.password"

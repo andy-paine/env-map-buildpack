@@ -1,0 +1,8 @@
+#!/bin/bash
+# bin/compile <build-dir> <cache-dir>
+
+set -eu
+for var in $(echo "$JSON_CONFIG" | jq -r '.env_vars | keys[]'); do
+	selector="$(echo "$JSON_CONFIG" | jq -r ".env_vars.$var")"
+  echo "export $var=\"\$(echo \$VCAP_SERVICES | jq -r '$selector')\""
+done

@@ -12,7 +12,7 @@ This buildpack utilizes the `profile.d` directory to supply a script that will e
 
 ## Usage
 
-To use this buildpack, include (https://github.com/andy-paine/env-map-buildpack)[https://github.com/andy-paine/env-map-buildpack] anywhere but the last element in the `buildpacks` field in your Cloud Foundry manifest:
+To use this buildpack, include [https://github.com/andy-paine/env-map-buildpack](https://github.com/andy-paine/env-map-buildpack) anywhere but the last element in the `buildpacks` field in your Cloud Foundry manifest:
 ```yaml
 buildpacks:
   - https://github.com/andy-paine/env-map-buildpack
@@ -24,4 +24,9 @@ Any selector which works when performing `echo "$VCAP_SERVICES" | jq '<selector>
 
 This buildpack does not attempt to resolve situations such as multiple results returned by selector or invalid selectors.
 
-> To use an alternative file name/location, set `ENV_MAP_BP_CONFIG` to the full path of your config file
+> To use an alternative file name/location, set `ENV_MAP_BP_CONFIG` to the path of your config file relative to the root of the app which is pushed
+
+### JSON/offline mode
+To make configuration easier, YAML is the default configuration format. To parse this format, the buildpack downloads and uses [yq](https://github.com/mikefarah/yq). For users who cannot download external binaries or for users who prefer JSON for configuration, you can provide a mapping file in JSON format with a `.json` extension. This will skip downloading `yq` and so should work on security concious/air-gapped environments.
+
+To instruct the buildpack to use a JSON formatted file, use the `ENV_MAP_BP_CONFIG` environment variable detailed above.

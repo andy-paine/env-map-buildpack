@@ -15,7 +15,7 @@ if [[ $CONFIG =~ .json ]]; then
   JSON_CONFIG="$(< "$APP_DIR/$CONFIG")"
 else
   echo "$log_prefix Downloading yq"
-  curl -L https://github.com/mikefarah/yq/releases/download/2.4.1/yq_linux_amd64 -o yq
+  curl --silent --location https://github.com/mikefarah/yq/releases/download/2.4.1/yq_linux_amd64 -o yq
   chmod +x yq
   JSON_CONFIG="$(./yq r "$APP_DIR/$CONFIG" -j)"
 fi

@@ -19,25 +19,30 @@ function test_creates_profile_d {
   echo '{"env_vars":{"KEY": "VALUE"}}' > app/env-map.json
   export ENV_MAP_BP_CONFIG="env-map.json"
 
-  "$supply" ./app IGNORED ./deps 0 &> /dev/null
+  "$supply" ./app IGNORED ./deps 0 #&> /dev/null
 
-  local file_path=./deps/0/profile.d/0-mapped-env-vars.sh
-  if [[ ! -f "$file_path" ]]; then
-    >&2 echo "FAIL: expected to find a mapping script in profile.d"
-    >&2 echo "Files were:"
-    >&2 tree
-    exit 1
-  fi
+  local file_paths=(
+    ./deps/0/profile.d/0-mapped-env-vars.sh
+    ./app/.profile.d/0-mapped-env-vars.sh
+  )
+  for file_path in "${file_paths[@]}"; do
+    if [[ ! -f "$file_path" ]]; then
+      >&2 echo "FAIL: expected to find a mapping script in profile.d"
+      >&2 echo "Files were:"
+      >&2 tree
+      exit 1
+    fi
 
-  # shellcheck disable=SC2016
-  expected='export KEY="$(echo $VCAP_SERVICES | jq -r '"'VALUE'"')"'
+    # shellcheck disable=SC2016
+    expected='export KEY="$(echo $VCAP_SERVICES | jq -r '"'VALUE'"')"'
 
-  if ! grep -q -F "$expected" "$file_path"; then
-    >&2 echo "FAIL: expected to find an export of '$expected'"
-    >&2 echo "Instead, found:"
-    >&2 cat "$file_path"
-    exit 1
-  fi
+    if ! grep -q -F "$expected" "$file_path"; then
+      >&2 echo "FAIL: expected to find an export of '$expected'"
+      >&2 echo "Instead, found:"
+      >&2 cat "$file_path"
+      exit 1
+    fi
+  done
 
   echo "PASS"
 }

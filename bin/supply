@@ -20,11 +20,23 @@ else
   JSON_CONFIG="$(./yq r "$APP_DIR/$CONFIG" -j)"
 fi
 
-mkdir -p "$DEPS_DIR/$IDX/profile.d"
+profile_dir="$DEPS_DIR/$IDX/profile.d"
+mkdir -p "$profile_dir"
+profile_file="$profile_dir/$IDX-mapped-env-vars.sh"
+
 for var in $(echo "$JSON_CONFIG" | jq -r '.env_vars | keys[]'); do
   selector="$(echo "$JSON_CONFIG" | jq -r ".env_vars.$var")"
-  echo "export $var=\"\$(echo \$VCAP_SERVICES | jq -r '$selector')\"" >> "$DEPS_DIR/$IDX/profile.d/$IDX-mapped-env-vars.sh"
+  echo "export $var=\"\$(echo \$VCAP_SERVICES | jq -r '$selector')\"" >> "$profile_file"
 done
+
+# HACK:
+# The java buildpack doesn't support loading environment variables from .profile.d in deps/ID/profile.d
+# So we also have to copy it to app/.profile.d
+#
+# See https://github.com/cloudfoundry/java-buildpack/issues/563#issuecomment-452437417
+# and https://github.com/cyberark/cloudfoundry-conjur-buildpack/blob/31f4cbef/bin/supply#L96-L115
+mkdir -p "$APP_DIR/.profile.d/"
+cp "$profile_file" "$APP_DIR/.profile.d/"
 
 echo "$log_prefix Done."
 exit 0
